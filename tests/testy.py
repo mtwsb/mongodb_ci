@@ -1,5 +1,22 @@
-from mongodb.py import mongo_uri
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+from pymongo.errors import DuplicateKeyError
+import pytest
+import uuid
+import time
+import os
 
+from mongodb import MONGO_URI, DB_NAME, COLLECTION_NAME
+
+@pytest.fixture
+def mongo_collection():
+    client = MongoClient(MONGO_URI)
+    db = client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    collection.delete_many({})
+    yield collection
+    collection.delete_many({})
+    client.close()
 
 def test_insert_one_with_extra_fields(mongo_collection):
     doc = {
@@ -8,7 +25,7 @@ def test_insert_one_with_extra_fields(mongo_collection):
         "age": 30,
         "email": "tomasz@example.com",
         "phone": "+48123123123",
-        "message": "Chcę odwiedzić Tokyo w maju",
+        "message": "Chcę odwiedzić Tokyo w maju"
     }
     result = mongo_collection.insert_one(doc)
     assert result.inserted_id is not None
@@ -17,7 +34,6 @@ def test_insert_one_with_extra_fields(mongo_collection):
     assert found["email"] == "tomasz@example.com"
     assert found["phone"] == "+48123123123"
     assert found["message"] == "Chcę odwiedzić Tokyo w maju"
-
 
 def test_find_by_destination(mongo_collection):
     destinations = ["Tokyo", "Berlin", "Paris", "Tokyo"]
@@ -29,18 +45,13 @@ def test_find_by_destination(mongo_collection):
     for doc in tokyo_docs:
         assert doc["destination"] == "Tokyo"
 
-
 def test_bulk_insert_performance_large(mongo_collection):
     docs = [{"_id": str(uuid.uuid4()), "x": i} for i in range(10_000)]
     start = time.perf_counter()
     mongo_collection.insert_many(docs)
     duration = time.perf_counter() - start
-    print(f"\n✅ Wstawiono 10 000 dokumentów w {duration:.4f} sekundy")
+    print(f"Wstawiono 10 000 dokumentów w {duration:.4f} sekundy")
     assert duration < 10
-
-
-from pymongo.errors import DuplicateKeyError
-
 
 def test_insert_unique_constraint(mongo_collection):
     unique_id = str(uuid.uuid4())
@@ -48,26 +59,23 @@ def test_insert_unique_constraint(mongo_collection):
     with pytest.raises(DuplicateKeyError):
         mongo_collection.insert_one({"_id": unique_id, "name": "B"})
 
-
-def test_find_indexed_vs_nonindexed(mongo_collection, benchmark):
-
-    docs = [
-        {"_id": str(uuid.uuid4()), "destination": f"City{i % 100}"} for i in range(5000)
-    ]
+def test_find_by_id_benchmark(mongo_collection, benchmark):
+    docs = [{"_id": str(uuid.uuid4()), "destination": f"City{i % 100}"} for i in range(5000)]
     mongo_collection.insert_many(docs)
     sample_id = docs[2500]["_id"]
-    sample_destination = docs[2500]["destination"]
 
     def find_by_id():
         mongo_collection.find_one({"_id": sample_id})
-
     benchmark(find_by_id)
+
+def test_find_by_destination_benchmark(mongo_collection, benchmark):
+    docs = [{"_id": str(uuid.uuid4()), "destination": f"City{i % 100}"} for i in range(5000)]
+    mongo_collection.insert_many(docs)
+    sample_destination = docs[2500]["destination"]
 
     def find_by_destination():
         list(mongo_collection.find({"destination": sample_destination}))
-
     benchmark(find_by_destination)
-
 
 def test_transaction_insert_and_rollback():
     client = MongoClient(MONGO_URI)
