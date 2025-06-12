@@ -1,10 +1,8 @@
 from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
 from pymongo.errors import DuplicateKeyError
 import pytest
 import uuid
 import time
-import os
 
 from mongodb import MONGO_URI, DB_NAME, COLLECTION_NAME
 
