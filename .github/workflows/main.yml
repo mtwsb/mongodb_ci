@@ -33,7 +33,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 pytest-cov # Upewnij się, że te są zainstalowane, jeśli nie ma ich w requirements.txt
+          pip install flake8 pytest-cov
+
+      - name: List files for debugging
+        run: |
+          echo "--- Listing files in root directory ---"
+          ls -F
+          echo ""
+          echo "--- Listing files in tests/ directory ---"
+          ls -F tests/ || echo "tests/ directory not found or empty." # Dodajemy || echo, żeby nie zawaliło, jeśli folder nie istnieje
+          echo ""
 
       - name: Lint with flake8
         run: flake8 . || true
@@ -65,4 +74,5 @@ jobs:
           path: downloaded-coverage-report
 
       - name: Display structure of downloaded files
+        run: ls -R downloaded-coverage-report
         run: ls -R downloaded-coverage-report
