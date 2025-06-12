@@ -1,4 +1,3 @@
-
 name: Python CI with MongoDB
 
 on: [push, pull_request]
@@ -9,26 +8,24 @@ jobs:
 
     services:
       mongo:
-        image: mongo:6 
+        image: mongo:6
         ports:
-          - 27017:27017 
+          - 27017:27017
         options: >-
           --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
-
     env:
-  
       MONGO_URI: mongodb://localhost:27017
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5 
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
@@ -36,45 +33,45 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          # Upewnij się, że flake8 i pytest-cov są zainstalowane, jeśli nie ma ich w requirements.txt
           pip install flake8 pytest-cov
 
-      - name: Lint with flake8
+      - name: List files for debugging
+        run: |
+          echo "--- Listing files in root directory ---"
+          ls -F
+          echo ""
+          echo "--- Listing files in tests/ directory ---"
+          ls -F tests/ || echo "tests/ directory not found or empty."
+          echo ""
 
+      - name: Lint with flake8
         run: flake8 . || true
 
       - name: Check formatting with black
-   
         run: black --check .
 
       - name: Run tests with coverage and print summary
-    
         run: |
           pytest tests/ --cov=. --cov-report=term
 
       - name: Run tests with coverage (HTML report)
-  
         run: |
           pytest tests/ --cov=. --cov-report=html
 
       - name: List the contents of htmlcov
- 
         run: ls -R htmlcov
 
       - name: Upload coverage report
- 
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: htmlcov/
 
       - name: Download coverage report
-    
         uses: actions/download-artifact@v4
         with:
           name: coverage-report
-          path: downloaded-coverage-report 
+          path: downloaded-coverage-report
 
       - name: Display structure of downloaded files
-
         run: ls -R downloaded-coverage-report
