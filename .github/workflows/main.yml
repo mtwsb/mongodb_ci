@@ -17,8 +17,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    # Brak env: MONGO_URI, bo jest zakodowany w mongodb.py
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 pytest-cov pytest-benchmark # Upewnij się, że pytest-benchmark jest zainstalowany
+          pip install flake8 pytest-cov pytest-benchmark
 
       - name: List files for debugging (expanded)
         run: |
@@ -51,9 +49,6 @@ jobs:
           echo "--- Verbose Pytest discovery for mongodb.py ---"
           pytest mongodb.py --collect-only -v
           echo ""
-          echo "--- Verbose Pytest discovery for current directory (fallback) ---"
-          pytest --collect-only -v
-          echo ""
 
       - name: Lint with flake8
         run: flake8 . || true
@@ -63,11 +58,11 @@ jobs:
 
       - name: Run full tests with coverage and print summary
         run: |
-          pytest mongodb.py --cov=. --cov-report=term # Uruchamia testy bezpośrednio z mongodb.py
+          pytest mongodb.py --cov=. --cov-report=term
 
       - name: Run tests with coverage (HTML report)
         run: |
-          pytest mongodb.py --cov=. --cov-report=html # Generuje raport HTML dla mongodb.py
+          pytest mongodb.py --cov=. --cov-report=html
 
       - name: List the contents of htmlcov
         run: ls -R htmlcov
@@ -84,7 +79,5 @@ jobs:
           name: coverage-report
           path: downloaded-coverage-report
 
-      - name: Display structure of downloaded files
-        run: ls -R downloaded-coverage-report
       - name: Display structure of downloaded files
         run: ls -R downloaded-coverage-report
