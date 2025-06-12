@@ -1,0 +1,5 @@
+# requirements.txt
+
+pymongo[srv]>=4.0.0
+pytest>=7.0.0
+pytest-benchmark>=4.0.0
