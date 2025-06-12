@@ -44,6 +44,16 @@ jobs:
           ls -F tests/ || echo "tests/ directory not found or empty."
           echo ""
 
+      - name: Show pytest version and plugins
+        run: pytest --version
+
+      - name: Debug pytest discovery
+        run: |
+          echo "--- Pytest discovery details for tests/ ---"
+          pytest tests/ --collect-only -q --strict-markers
+          echo "--- Pytest discovery details for current directory (fallback) ---"
+          pytest --collect-only -q --strict-markers || true # Run this as a fallback, don't fail the workflow
+
       - name: Lint with flake8
         run: flake8 . || true
 
