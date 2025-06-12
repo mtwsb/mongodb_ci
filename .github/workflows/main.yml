@@ -17,8 +17,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    env:
-      MONGO_URI: mongodb://localhost:27017
+    # Brak env: MONGO_URI, bo jest zakodowany w mongodb.py
 
     steps:
       - name: Checkout code
@@ -33,26 +32,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install flake8 pytest-cov
+          pip install flake8 pytest-cov pytest-benchmark # Upewnij się, że pytest-benchmark jest zainstalowany
 
-      - name: List files for debugging
+      - name: List files for debugging (expanded)
         run: |
           echo "--- Listing files in root directory ---"
           ls -F
           echo ""
-          echo "--- Listing files in tests/ directory ---"
-          ls -F tests/ || echo "tests/ directory not found or empty."
+          echo "--- Content of mongodb.py ---"
+          cat mongodb.py || echo "mongodb.py not found."
           echo ""
 
       - name: Show pytest version and plugins
         run: pytest --version
 
-      - name: Debug pytest discovery
+      - name: Debug pytest discovery (verbose)
         run: |
-          echo "--- Pytest discovery details for tests/ ---"
-          pytest tests/ --collect-only -q --strict-markers
-          echo "--- Pytest discovery details for current directory (fallback) ---"
-          pytest --collect-only -q --strict-markers || true # Run this as a fallback, don't fail the workflow
+          echo "--- Verbose Pytest discovery for mongodb.py ---"
+          pytest mongodb.py --collect-only -v
+          echo ""
+          echo "--- Verbose Pytest discovery for current directory (fallback) ---"
+          pytest --collect-only -v
+          echo ""
 
       - name: Lint with flake8
         run: flake8 . || true
@@ -60,13 +61,13 @@ jobs:
       - name: Check formatting with black
         run: black --check .
 
-      - name: Run tests with coverage and print summary
+      - name: Run full tests with coverage and print summary
         run: |
-          pytest tests/ --cov=. --cov-report=term
+          pytest mongodb.py --cov=. --cov-report=term # Uruchamia testy bezpośrednio z mongodb.py
 
       - name: Run tests with coverage (HTML report)
         run: |
-          pytest tests/ --cov=. --cov-report=html
+          pytest mongodb.py --cov=. --cov-report=html # Generuje raport HTML dla mongodb.py
 
       - name: List the contents of htmlcov
         run: ls -R htmlcov
@@ -83,5 +84,7 @@ jobs:
           name: coverage-report
           path: downloaded-coverage-report
 
+      - name: Display structure of downloaded files
+        run: ls -R downloaded-coverage-report
       - name: Display structure of downloaded files
         run: ls -R downloaded-coverage-report
