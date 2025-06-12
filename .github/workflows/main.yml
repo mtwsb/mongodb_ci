@@ -1,0 +1,81 @@
+name: Python CI with MongoDB
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongo:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      ACTIONS_RUNTIME_TOKEN: ${{ secrets.ACTIONS_RUNTIME_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 black pytest-cov
+
+      - name: Lint with flake8
+        run: flake8 . || true
+
+      - name: Check formatting with black
+        run: black --check .
+
+      - name: Run tests with coverage and print summary
+        run: |
+          pytest --cov=. --cov-report=term
+
+      - name: Run tests with coverage (HTML report)
+        run: |
+          pytest --cov=. --cov-report=html
+
+      - name: List the contents of htmlcov
+        run: ls -R htmlcov  # This will check if files are being created
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4  # Use version v4 of upload-artifact
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4  # Use version v4 of download-artifact
+        with:
+          name: coverage-report
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Debug loggingc
+        run: |
+          echo "ACTION_TOKEN=$ACTIONS_RUNTIME_TOKEN"
+          # You can further add debug commands here if needed
+
+      - name: Autoformat with black
+        run: black .
+
+      - name: Włącz debugowanie
+        run: echo "Debugowanie włączone"
+
+      - name: Enable debug logging
+        run: echo "ACT_DEBUG=true" >> $GITHUB_ENV
