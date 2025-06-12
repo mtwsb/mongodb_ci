@@ -41,7 +41,7 @@ jobs:
           ls -F
           echo ""
           echo "--- Listing files in tests/ directory ---"
-          ls -F tests/ || echo "tests/ directory not found or empty." # Dodajemy || echo, żeby nie zawaliło, jeśli folder nie istnieje
+          ls -F tests/ || echo "tests/ directory not found or empty."
           echo ""
 
       - name: Lint with flake8
@@ -74,5 +74,4 @@ jobs:
           path: downloaded-coverage-report
 
       - name: Display structure of downloaded files
-        run: ls -R downloaded-coverage-report
         run: ls -R downloaded-coverage-report
