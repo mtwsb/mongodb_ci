@@ -110,6 +110,21 @@ def test_transaction_insert_and_rollback():
     session.end_session()
     client.close()
 
+@app.route('/')
+def home():
+    try:
+        temp_client = MongoClient(MONGO_URI)
+        temp_client.admin.command('ping')
+        temp_client.close()
+        return "<h1>Witaj w aplikacji Flask z MongoDB na Render.com!</h1><p>Połączenie z bazą danych aktywne.</p>"
+    except ConnectionFailure:
+        return "<h1>Witaj w aplikacji Flask z MongoDB na Render.com!</h1><p>Błąd połączenia z bazą danych. Sprawdź logi Render.</p>", 500
+
+
+
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    run_all_startup_tests()
+    port = int(os.environ.get('PORT', 10000))
+    print(f"🚀 Uruchamiam aplikację Flask na porcie {port}...")
     app.run(host='0.0.0.0', port=port)
