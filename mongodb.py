@@ -109,4 +109,3 @@ def test_transaction_insert_and_rollback():
     assert result is None
     session.end_session()
     client.close()
-
