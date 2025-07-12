@@ -110,4 +110,3 @@ def test_transaction_insert_and_rollback():
     session.end_session()
     client.close()
 
-
